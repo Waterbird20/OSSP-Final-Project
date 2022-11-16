@@ -15,9 +15,9 @@ from flask import jsonify
 from werkzeug.serving import WSGIRequestHandler
 import json
 
-USER = "Polytopia"
-PW = "PolytopiaDataBaseWaterbird"
-URL = "polytopiadatabase.csuecd3zzn97.ap-northeast-2.rds.amazonaws.com"
+USER = ""
+PW = ""
+URL = ""
 PORT = "5432"
 DB = "postgres"
 
@@ -39,77 +39,6 @@ app = Flask(__name__)
 
 # This line is for solving flask's CORS error
 # CORS(app)
-
-'''
-global pi
-
-@app.route("/monte-carlo/pi", methods=['GET'])
-def cal_pi():
-    start = time.time()
-    n = request.args.get('n')
-    try:
-        n = int(n)
-    except ValueError:
-        return {
-            'elapse time' : None,
-            'pi':None
-        }
-    global pi
-
-    circleIn = 0
-    circleOut = 0
-    for i in range(0,n):
-        x = random.random()
-        y = random.random()
-
-        r = x**2 + y**2
-        if(r>1):
-            circleOut+=1
-        else:
-            circleIn+=1
-
-        pi = 4*circleIn/(circleOut+circleIn)
-
-    exist = False
-    ret = {}
-    end = time.time()
-    etime = end - start
-
-    ret["elapse time"] = etime
-    ret["pi"] = pi
-    return jsonify(ret)
-
-@app.route("/get/pi", methods=['GET'])
-def get_pi():
-    global pi
-
-    ret = {}
-
-    ret["pi"] = pi
-    return jsonify(ret)
-
-
-@app.route("/update/pi", methods=['POST'])
-def update_pi():
-    content = request.get_json(silent=True)
-
-    inputPi = content["pi"]
-
-    try:
-        inputPi = float(inputPi)
-    except ValueError:
-        return jsonify(success=False)
-
-    global pi
-    pi = inputPi
-
-    return jsonify(success=True)
-
-
-
-if __name__ == "__main__":
-    app.run(host='localhost', port=8888)
-'''
 
 engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(USER, PW, URL, PORT, DB))
 db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
