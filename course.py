@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Database URL : https://rpyy83l3r1.execute-api.ap-northeast-2.amazonaws.com/dev
+
 Created on Fri Apr 29 13:33:24 2022
 @author: hsherlcok
 """
@@ -17,19 +19,13 @@ import json
 
 USER = ""
 PW = ""
-URL = ""
+URL = ".ap-northeast-2.rds.amazonaws.com"
 PORT = "5432"
 DB = "postgres"
 
-from flask import Flask
-from flask import request
-from flask import jsonify
-import time
-import random
-
 # This line is for solving flask's CORS error
 # You need 'pip install flask_cors' to use flask_cors
-# from flask_cors import CORS
+from flask_cors import CORS
 from werkzeug.serving import WSGIRequestHandler
 import json
 
@@ -38,7 +34,7 @@ WSGIRequestHandler.protocol_version = "HTTP/1.1"
 app = Flask(__name__)
 
 # This line is for solving flask's CORS error
-# CORS(app)
+CORS(app)
 
 engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(USER, PW, URL, PORT, DB))
 db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
@@ -46,19 +42,20 @@ db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind
 Base = declarative_base()
 Base.query = db_session.query_property()
 
-Base.metadata.create_all(bind=engine)
 
 class course(Base):
     __tablename__ = 'courses'
     course_id = Column(String(50), primary_key=True)
     course_name = Column(String(50), unique=True)
     professor = Column(String(50), unique=True)
-    tutee = Column(String(50), unique=True)
+    tutor = Column(String(50), unique=True)
+    tutee = Column(String(200), unique=True)
 
-    def __init__(self, course_id=None, course_name=None, professor=None, tutee=None):
+    def __init__(self, course_id=None, course_name=None, professor=None, tutor=None, tutee=None):
         self.course_id = course_id
         self.course_name = course_name
         self.professor = professor
+        self.tutor = tutor
         self.tutee = tutee
 
     def __repr__(self):
@@ -79,10 +76,11 @@ def add_Course():
     course_id = content["id"]
     course_name = content["name"]
     professor = content["professor"]
+    tutor = content["tutor"]
     tutee = content["tutee"]
 
-    if db_session.query(courses).filter_by(course_id=course_id).first() is None:
-        c = course(course_id=course_id, course_name=course_name, professor=professor,tutee=tutee)
+    if db_session.query(course).filter_by(course_id=course_id).first() is None:
+        c = course(course_id=course_id, course_name=course_name, professor=professor,tutor=tutor,tutee=tutee)
         db_session.add(c)
         db_session.commit()
         return jsonify(success=True)
@@ -90,64 +88,64 @@ def add_Course():
         return jsonify(success=False)
 
 
-@app.route("/getcourse", methods=['GET'])
+@app.route("/getcourse", methods=['POST'])
 def get_Course():
     content = request.get_json(silent=True)
-    course_id = content["course_id"]
-    result = {}
+    course_id = content["id"]
+    output = {}
     check = False
     result = db_session.query(course).all()
 
     for i in result:
-        result = {}
         if i.course_id == course_id:
             check = True
-            result["course_id"] = i.course_id
-            result["course_name"] = i.course_name
-            result["professor"] = i.professor
-            result["tutee"] = i.tutee
+            output["course_id"] = i.course_id
+            output["course_name"] = i.course_name
+            output["professor"] = i.professor
+            output["tutee"] = i.tutee
+            output["tutor"] = i.tutor
             break
 
     if(check):
-        return jsonify(result)
+        return jsonify(output)
     else:
         return jsonify(success=check)
 
 
-@app.route("/getAllcourse", methods=['GET'])
+@app.route("/getallcourse", methods=['GET'])
 def get_Allcourse():
-    content = request.get_json(silent=True)
-    result = {}
-    check = False
+    output = {}
     result = db_session.query(course).all()
 
     for i in result:
-        temp = {}
         check = True
-        temp["course_id"] = i.course_id
-        temp["course_name"] = i.course_name
+        temp = {}
+        course_id = i.course_id
+        temp["id"] = i.course_id
+        temp["name"] = i.course_name
         temp["professor"] = i.professor
         temp["tutee"] = i.tutee
-        if course_id in result:
+        temp["tutor"] = i.tutor
+        if course_id in output:
             continue
         else:
-            result[course_id] = temp
+            output[course_id] = temp
 
     if(check):
-        return jsonify(result)
+        return jsonify(output)
     else:
         return jsonify(success=check)
 
 
 
 @app.route("/addtutee", methods=['POST'])
-def delete_user():
+def add_tutee():
     content = request.get_json(silent=True)
-    course_id = content["course_id"]
+    course_id = content["id"]
     newtutee = content["tutee"]
     check = False
 
-    result = db_session.query(User).all()
+    result = db_session.query(course).all()
 
     for i in result:
         if i.course_id == course_id:
@@ -168,6 +166,24 @@ def StrToArray(Str):
     temp = Str.strip("{""}"" ")
     Arr = temp.split(",")
     return Arr
+
+@app.route("/test", methods=['GET'])
+def test():
+    return jsonify(success=True)
+
+@app.route("/delete", methods=['POST'])
+def delete_all():
+    result = db_session.query(course).all()
+
+    for i in result:
+        db_session.delete(i)
+        db_session.commit()
+
+    check= True
+
+    return jsonify(success = check)
+
+
 
 if __name__ == "__main__":
     app.run(host='localhost', port=8888)
