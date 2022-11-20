@@ -37,11 +37,11 @@ CORS(app)
 engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(USER, PW, URL, PORT, DB))
 db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 db_session_User = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+db_session_Lecutre = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 
 Base = declarative_base()
 Base.query = db_session.query_property()
-
 
 class course(Base):
     __tablename__ = 'courses'
@@ -74,13 +74,83 @@ class User(UserBase):
         self.name=name
 
     def __repr__(self):
-        return f'<course {self.user_id!r}'
+        return f'<User {self.user_id!r}'
+
+lectureBase = declarative_base()
+lectureBase.query = db_session_Lecutre.query_property()
+
+class Lecture(lectureBase):
+    __tablename__ = "lectures"
+    college = Column(String(50), unique = False)
+    department = Column(String(50), unique = False)
+    course_id = Column(String(50), primary_key = True)
+    name = Column(String(50), unique = False)
+    professor = Column(String(50), unique = False)
+
+    def __init__(self, college=None, department=None, course_id=None, name=None, professor=None):
+        self.college=college
+        self.department-department
+        self.course_id=course_id
+        self.name=name
+        self.professor=professor
+
+    def __repr__(self):
+        return f'<Lecture {self.course_id!r}'
 
 # Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 # UserBase.metadata.drop_all(bind=engine)
 UserBase.metadata.create_all(bind=engine)
+
+lectureBase.metadata.drop_all(bind=engine)
+lectureBase.metadata.create_all(bind=engine)
+
+@app.route("/addlecture", methods=['POST'])
+def add_lecture():
+    content = request.get_json(silent=True)
+    college = content["college"]
+    department = content["dept"]
+    course_id = content["course_id"]
+    name = content["name"]
+    professor = content["professor"]
+
+    if db_session_Lecutre(Lecture).filter_by(course_id=course_id).first() is None:
+        lec = Lecture(college=college, department=department, course_id=course_id, name=name, professor=professor)
+        db_session_Lecutre.add(lec)
+        db_session_Lecutre.commit()
+        return jsonify(success=True)
+    else:
+        return jsonify(success=False)
+
+
+
+@app.route("/getallLecture", methods=['GET'])
+def get_AllLecture():
+    output = {}
+    result = db_session.query(Lecture).all()
+    check = False
+
+    for i in result:
+        check = True
+        temp = {}
+        course_id = i.course_id
+
+        temp["course_id"] = i.course_id
+        temp["name"] = i.name
+        temp["professor"] = i.professor
+        temp["department"] = i.department
+        temp["college"] = i.college
+
+        if course_id in output:
+            continue
+        else:
+            output[course_id] = temp
+
+    if(check):
+        return jsonify(output)
+    else:
+        return jsonify(success=check)
 
 
 
@@ -135,7 +205,6 @@ def getallusers():
         return jsonify(output)
     else:
         return jsonify(success = False)
-
 
 
 @app.route("/addcourse", methods=['POST'])
