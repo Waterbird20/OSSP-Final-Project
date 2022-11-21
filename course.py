@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Database URL : https://rpyy83l3r1.execute-api.ap-northeast-2.amazonaws.com/dev
-
+Database URL :  https://rpyy83l3r1.execute-api.ap-northeast-2.amazonaws.com/dev
 Created on Fri Apr 29 13:33:24 2022
 @author: hsherlcok
 """
@@ -17,7 +16,9 @@ from flask import jsonify
 from werkzeug.serving import WSGIRequestHandler
 import json
 
-
+USER = "postgres"
+PW = "a123123!"
+URL = "final-db.ckwpjjg8aiyn.ap-northeast-2.rds.amazonaws.com"
 PORT = "5432"
 DB = "postgres"
 
@@ -25,7 +26,6 @@ DB = "postgres"
 # You need 'pip install flask_cors' to use flask_cors
 from flask_cors import CORS
 from werkzeug.serving import WSGIRequestHandler
-import json
 
 WSGIRequestHandler.protocol_version = "HTTP/1.1"
 
@@ -37,8 +37,7 @@ CORS(app)
 engine = create_engine("postgresql://{}:{}@{}:{}/{}".format(USER, PW, URL, PORT, DB))
 db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 db_session_User = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
-db_session_Lecutre = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
-
+db_session_Lecture = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 Base = declarative_base()
 Base.query = db_session.query_property()
@@ -77,25 +76,25 @@ class User(UserBase):
         return f'<User {self.user_id!r}'
 
 lectureBase = declarative_base()
-lectureBase.query = db_session_Lecutre.query_property()
+lectureBase.query = db_session_Lecture.query_property()
 
 class Lecture(lectureBase):
     __tablename__ = "lectures"
+    lecture_id = Column(String(50), primary_key =True)
     college = Column(String(50), unique = False)
     department = Column(String(50), unique = False)
-    course_id = Column(String(50), primary_key = True)
     name = Column(String(50), unique = False)
     professor = Column(String(50), unique = False)
 
-    def __init__(self, college=None, department=None, course_id=None, name=None, professor=None):
-        self.college=college
-        self.department-department
-        self.course_id=course_id
-        self.name=name
-        self.professor=professor
+    def __init__(self, lecture_id=None, college=None, department=None, name=None, professor=None):
+        self.lecture_id = lecture_id
+        self.college = college
+        self.department = department
+        self.name = name
+        self.professor = professor
 
     def __repr__(self):
-        return f'<Lecture {self.course_id!r}'
+        return f'<Lecture {self.lecture_id!r}'
 
 # Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
@@ -103,7 +102,7 @@ Base.metadata.create_all(bind=engine)
 # UserBase.metadata.drop_all(bind=engine)
 UserBase.metadata.create_all(bind=engine)
 
-lectureBase.metadata.drop_all(bind=engine)
+# lectureBase.metadata.drop_all(bind=engine)
 lectureBase.metadata.create_all(bind=engine)
 
 @app.route("/addlecture", methods=['POST'])
@@ -111,14 +110,14 @@ def add_lecture():
     content = request.get_json(silent=True)
     college = content["college"]
     department = content["dept"]
-    course_id = content["course_id"]
+    lecture_id = content["id"]
     name = content["name"]
-    professor = content["professor"]
+    professor = content["prof"]
 
-    if db_session_Lecutre(Lecture).filter_by(course_id=course_id).first() is None:
-        lec = Lecture(college=college, department=department, course_id=course_id, name=name, professor=professor)
-        db_session_Lecutre.add(lec)
-        db_session_Lecutre.commit()
+    if db_session_Lecture.query(Lecture).filter_by(lecture_id=lecture_id).first() is None:
+        l = Lecture(lecture_id=lecture_id, college=college, department=department, name=name, professor=professor)
+        db_session_Lecture.add(l)
+        db_session_Lecture.commit()
         return jsonify(success=True)
     else:
         return jsonify(success=False)
@@ -134,18 +133,18 @@ def get_AllLecture():
     for i in result:
         check = True
         temp = {}
-        course_id = i.course_id
+        lecture_id = i.lecture_id
 
-        temp["course_id"] = i.course_id
+        temp["lecture_id"] = i.lecture_id
         temp["name"] = i.name
         temp["professor"] = i.professor
         temp["department"] = i.department
         temp["college"] = i.college
 
-        if course_id in output:
+        if lecture_id in output:
             continue
         else:
-            output[course_id] = temp
+            output[lecture_id] = temp
 
     if(check):
         return jsonify(output)
