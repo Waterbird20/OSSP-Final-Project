@@ -260,10 +260,52 @@ def get_Course():
         return jsonify(success=check)
 
 
-@app.route("/getallcourse", methods=['GET'])
+@app.route("/getallmycourse", methods=['POST'])
 def get_Allcourse():
+    content = request.get_json(silent=True)
+    user_id = content["id"]
     output = {}
     result = db_session.query(course).all()
+    users = db_session.query(User).all()
+
+    check = False
+
+    for i in result:
+        if user_id in i.tutee:
+            check = True
+            temp = {}
+            course_id = i.course_id
+            currentTutee = StrToArray(i.tutee)
+
+            tutor_name = "IDK"
+
+            for j in users:
+                if j.user_id == i.tutor:
+                    tutor_name = j.name
+
+
+            temp["id"] = i.course_id
+            temp["name"] = i.course_name
+            temp["professor"] = i.professor
+            temp["tutor"] = tutor_name
+            temp["tutee"] = currentTutee
+
+            if course_id in output:
+                continue
+            else:
+                output[course_id] = temp
+
+    if(check):
+        return jsonify(output)
+    else:
+        return jsonify(success=check)
+
+@app.route("/getallcourse", methods=['GET'])
+def get_Allmycourse():
+    output = {}
+    result = db_session.query(course).all()
+    users = db_session.query(User).all()
+
     check = False
 
     for i in result:
@@ -272,10 +314,17 @@ def get_Allcourse():
         course_id = i.course_id
         currentTutee = StrToArray(i.tutee)
 
+        tutor_name = "IDK"
+
+        for j in users:
+            if j.user_id == i.tutor:
+                tutor_name = j.name
+
+
         temp["id"] = i.course_id
         temp["name"] = i.course_name
         temp["professor"] = i.professor
-        temp["tutor"] = i.tutor
+        temp["tutor"] = tutor_name
         temp["tutee"] = currentTutee
 
         if course_id in output:
