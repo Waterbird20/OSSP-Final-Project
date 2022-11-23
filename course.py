@@ -296,7 +296,7 @@ def get_Allcourse():
                 output[course_id] = temp
 
     if(check):
-        return jsonify(output)
+        return jsonify(courses = output)
     else:
         return jsonify(success=check)
 
@@ -333,7 +333,7 @@ def get_Allmycourse():
             output[course_id] = temp
 
     if(check):
-        return jsonify(output)
+        return jsonify(courses = output)
     else:
         return jsonify(success=check)
 
