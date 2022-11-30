@@ -147,7 +147,7 @@ def get_AllLecture():
             output[lecture_id] = temp
 
     if(check):
-        return jsonify(output)
+        return jsonify(lectures = output)
     else:
         return jsonify(success=check)
 
