@@ -252,6 +252,7 @@ def get_Course():
             output["professor"] = i.professor
             output["tutee"] = i.tutee
             output["tutor"] = i.tutor
+            output["tuteeNum"] = len(i.tutee.split(','))
             break
 
     if(check):
@@ -326,6 +327,7 @@ def get_Allmycourse():
         temp["professor"] = i.professor
         temp["tutor"] = tutor_name
         temp["tutee"] = currentTutee
+        temp["tuteeNum"] = len(currentTutee)
 
         if course_id in output:
             continue
