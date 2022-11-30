@@ -253,7 +253,10 @@ def get_Course():
             output["professor"] = i.professor
             output["tutee"] = i.tutee
             output["tutor"] = i.tutor
-            output["tuteeNum"] = len(i.tutee.split(','))
+            if(len(i.tutee) == 0):
+                output["tuteeNum"] = 0
+            else:   
+                output["tuteeNum"] = len(i.tutee.split(','))
             break
 
     if(check):
@@ -328,7 +331,10 @@ def get_Allmycourse():
         temp["professor"] = i.professor
         temp["tutor"] = tutor_name
         temp["tutee"] = currentTutee
-        temp["tuteeNum"] = len(currentTutee)
+        if(len(i.tutee) == 0):
+            temp["tuteeNum"] = 0
+        else:   
+            temp["tuteeNum"] = len(i.tutee.split(','))
 
         if course_id in output:
             continue
