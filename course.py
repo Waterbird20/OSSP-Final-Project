@@ -216,16 +216,17 @@ def add_Course():
     tutee = content["tutee"]
 
     temp = tutee.replace(" ", "")
-    tutees = temp.split(",")
+    if(len(temp) != 0):
+        tutees = temp.split(",")
 
-    for i in tutees:
-        if isInUser(i):
-            continue
-        else:
+        for i in tutees:
+            if isInUser(i):
+                continue
+            else:
+                return jsonify(success=False)
+
+        if not isInLecture(course_id):  
             return jsonify(success=False)
-
-    if not isInLecture(course_id):  
-        return jsonify(success=False)
 
     if db_session.query(course).filter_by(course_id=course_id).first() is None:
         c = course(course_id=course_id, course_name=course_name, professor=professor,tutor=tutor,tutee=tutee)
