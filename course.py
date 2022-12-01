@@ -105,6 +105,8 @@ UserBase.metadata.create_all(bind=engine)
 # lectureBase.metadata.drop_all(bind=engine)
 lectureBase.metadata.create_all(bind=engine)
 
+longtxt = "2.수강신청더보기란추가->튜터가 적은 소개글 보여줌(모달창or히든창)[못 할 수도?]\n4.학수번호 검색기능추가\n5.신청버튼 클릭시 내 신청강좌에 담김\n7.신청모달에서 강의추가 누르면 강의맞는지확인후(DB확인후)->추가(요건 새로고침하면 될겁니다)"
+
 @app.route("/addlecture", methods=['POST'])
 def add_lecture():
     content = request.get_json(silent=True)
@@ -381,6 +383,10 @@ def StrToArray(Str):
 @app.route("/test", methods=['GET'])
 def test():
     return jsonify(success=True)
+
+@app.route("/longtest", methods=['GET'])
+def longtest():
+    return jsonify(test = longtxt)
 
 @app.route("/delete", methods=['POST'])
 def delete_all():
