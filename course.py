@@ -406,6 +406,13 @@ def delete_all():
 
     return jsonify(success = check)
 
+@app.route("/isinLecture", methods=["POST"])
+def lectureCheck():
+    content = request.get_json(silent=True)
+    lecture_id = content["id"]
+    check = isInLecture(lecture_id)
+    return jsonify(success = check)
+
 def isInLecture(course_id):
     if db_session_Lecture.query(Lecture).filter_by(lecture_id=course_id).first() is None:
         return False
