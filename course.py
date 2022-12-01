@@ -44,18 +44,24 @@ Base.query = db_session.query_property()
 
 class course(Base):
     __tablename__ = 'courses'
-    course_id = Column(String(50), primary_key=True)
-    course_name = Column(String(50), unique=True)
-    professor = Column(String(50), unique=False)
-    tutor = Column(String(50), unique=False)
-    tutee = Column(String(200), unique=False)
+    course_id = Column(String(20), primary_key=True)
+    course_name = Column(String(20), unique=True)
+    professor = Column(String(20), unique=False)
+    tutor = Column(String(20), unique=False)
+    tutee = Column(String(100), unique=False)
+    motivation = Column(String(500), unique=False)
+    syllabus = Column(String(500), unique=False)
+    schedule = Column(String(500), unique=False)
 
-    def __init__(self, course_id=None, course_name=None, professor=None, tutor=None, tutee=None):
+    def __init__(self, course_id=None, course_name=None, professor=None, tutor=None, tutee=None, motivation=None, syllabus=None, schedule=None):
         self.course_id = course_id
         self.course_name = course_name
         self.professor = professor
         self.tutor = tutor
         self.tutee = tutee
+        self.motivation = motivation
+        self.syllabus = syllabus
+        self.schedule = schedule
 
     def __repr__(self):
         return f'<course {self.course_id!r}>'
@@ -96,7 +102,7 @@ class Lecture(lectureBase):
     def __repr__(self):
         return f'<Lecture {self.lecture_id!r}'
 
-# Base.metadata.drop_all(bind=engine)
+Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 # UserBase.metadata.drop_all(bind=engine)
@@ -123,8 +129,6 @@ def add_lecture():
         return jsonify(success=True)
     else:
         return jsonify(success=False)
-
-
 
 @app.route("/getallLecture", methods=['GET'])
 def get_AllLecture():
@@ -153,8 +157,6 @@ def get_AllLecture():
     else:
         return jsonify(success=check)
 
-
-
 @app.route("/adduser", methods=['POST'])
 def add_user():
     content = request.get_json(silent=True)
@@ -174,7 +176,7 @@ def login():
     content = request.get_json(silent=True)
     user_id = content["id"]
     name = content["name"]
-    result = db_session_User.query(User).all()
+    result = db_session_User.query(User).filter_by(user_id=user_id)
 
     check = False
     for i in result:
@@ -216,6 +218,9 @@ def add_Course():
     professor = content["professor"]
     tutor = content["tutor"]
     tutee = content["tutee"]
+    motivation = content["motivation"]
+    syllabus = content["syllabus"]
+    schedule = content["schedule"]
 
     temp = tutee.replace(" ", "")
     if(len(temp) != 0):
@@ -227,17 +232,13 @@ def add_Course():
             else:
                 return jsonify(success=False)
 
-        if not isInLecture(course_id):  
-            return jsonify(success=False)
-
     if db_session.query(course).filter_by(course_id=course_id).first() is None:
-        c = course(course_id=course_id, course_name=course_name, professor=professor,tutor=tutor,tutee=tutee)
+        c = course(course_id=course_id, course_name=course_name, professor=professor, tutor=tutor, tutee=tutee, motivation=motivation, syllabus=syllabus, schedule=schedule)
         db_session.add(c)
         db_session.commit()
         return jsonify(success=True)
     else:
         return jsonify(success=False)
-
 
 @app.route("/getcourse", methods=['POST'])
 def get_Course():
@@ -245,7 +246,7 @@ def get_Course():
     course_id = content["id"]
     output = {}
     check = False
-    result = db_session.query(course).all()
+    result = db_session.query(course).filter_by(course_id=course_id)
 
     for i in result:
         if i.course_id == course_id:
@@ -255,6 +256,10 @@ def get_Course():
             output["professor"] = i.professor
             output["tutee"] = i.tutee
             output["tutor"] = i.tutor
+            output["motivation"] = i.motivation
+            output["syllabus"] = i.syllabus
+            output["schedule"] = i.schedule
+
             if(len(i.tutee) == 0):
                 output["tuteeNum"] = 0
             else:   
@@ -265,7 +270,6 @@ def get_Course():
         return jsonify(output)
     else:
         return jsonify(success=check)
-
 
 @app.route("/getallmycourse", methods=['POST'])
 def get_Allcourse():
@@ -311,7 +315,6 @@ def get_Allcourse():
 def get_Allmycourse():
     output = {}
     result = db_session.query(course).all()
-    users = db_session.query(User).all()
 
     check = False
 
@@ -322,6 +325,7 @@ def get_Allmycourse():
         currentTutee = StrToArray(i.tutee)
 
         tutor_name = "IDK"
+        users = db_session.query(User).filter_by(user_id=i.tutor)
 
         for j in users:
             if j.user_id == i.tutor:
