@@ -102,7 +102,7 @@ class Lecture(lectureBase):
     def __repr__(self):
         return f'<Lecture {self.lecture_id!r}'
 
-Base.metadata.drop_all(bind=engine)
+# Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 
 # UserBase.metadata.drop_all(bind=engine)
@@ -337,6 +337,8 @@ def get_Allmycourse():
         temp["professor"] = i.professor
         temp["tutor"] = tutor_name
         temp["tutee"] = currentTutee
+        temp["schedule"] = i.schedule
+
         if(len(i.tutee) == 0):
             temp["tuteeNum"] = 0
         else:   
