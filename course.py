@@ -277,7 +277,6 @@ def get_Allcourse():
     user_id = content["id"]
     output = {}
     result = db_session.query(course).all()
-    users = db_session.query(User).all()
 
     check = False
 
@@ -288,18 +287,16 @@ def get_Allcourse():
             course_id = i.course_id
             currentTutee = StrToArray(i.tutee)
 
-            tutor_name = "IDK"
-
-            for j in users:
-                if j.user_id == i.tutor:
-                    tutor_name = j.name
-
 
             temp["id"] = i.course_id
             temp["name"] = i.course_name
             temp["professor"] = i.professor
-            temp["tutor"] = tutor_name
-            temp["tutee"] = currentTutee
+            temp["tutor"] = getUser(i.tutor)
+            if(len(i.tutee) == 0):
+                temp["tuteeNum"] = 0
+            else:   
+                temp["tuteeNum"] = len(i.tutee.split(','))
+            temp["schedule"] = i.schedule
 
             if course_id in output:
                 continue
