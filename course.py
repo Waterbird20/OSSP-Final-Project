@@ -146,6 +146,7 @@ def get_AllLecture():
         temp["professor"] = i.professor
         temp["department"] = i.department
         temp["college"] = i.college
+        temp["isInCourse"] = isIncourse(i.lecture_id)
 
         if lecture_id in output:
             continue
@@ -209,7 +210,6 @@ def getallusers():
     else:
         return jsonify(success = False)
 
-
 @app.route("/addcourse", methods=['POST'])
 def add_Course():
     content = request.get_json(silent=True)
@@ -255,7 +255,7 @@ def get_Course():
             output["course_name"] = i.course_name
             output["professor"] = i.professor
             output["tutee"] = i.tutee
-            output["tutor"] = i.tutor
+            output["tutor"] = getUser(i.tutor)
             output["motivation"] = i.motivation
             output["syllabus"] = i.syllabus
             output["schedule"] = i.schedule
@@ -413,6 +413,13 @@ def lectureCheck():
     check = isInLecture(lecture_id)
     return jsonify(success = check)
 
+def isIncourse(course_id):
+    if db_session.query(course).filter_by(course_id=course_id).first() is None:
+        return False
+    else:
+        return True
+
+
 def isInLecture(course_id):
     if db_session_Lecture.query(Lecture).filter_by(lecture_id=course_id).first() is None:
         return False
@@ -424,6 +431,16 @@ def isInUser(id):
         return False
     else:
         return True
+
+def getUser(id):
+    if db_session_User.query(User).filter_by(user_id=id).first() is None:
+        return ""
+    else:
+        result = db_session_User.query(User).filter_by(user_id=id)
+        for i in result:
+            name = i.name
+        return name
+
 
 if __name__ == "__main__":
     app.run(host='localhost', port=8888)
